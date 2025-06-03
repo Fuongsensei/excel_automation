@@ -12,7 +12,7 @@ from blessed import Terminal
 from file_utils import copy_file_from_net
 import constains
 
-import platform
+
 
 # Fix TERM error cho Windows
 if os.name == "nt":

@@ -9,6 +9,7 @@ import datetime as dt
 import win32com.client
 from xlsx2csv import Xlsx2csv
 import re
+from ui_console import print_user_table_clean
 if os.name == "nt":
     os.environ.setdefault("TERM", "xterm")
 from blessed import Terminal
@@ -149,7 +150,7 @@ def write_user_to_sheet(data: pd.DataFrame , path: str):
                         print(data.iloc[i].values)
                         print('\n'*3)
                 last_row : int = sheet.range((sheet.cells.last_cell).row,1).end('up').row
-                print('\n'*5)
+                print_user_table_clean(data)
                 if last_row > 4 :
                         sheet.api.Range(f'A{4+1}:A{last_row}').EntireRow.Delete()
                 else : pass
