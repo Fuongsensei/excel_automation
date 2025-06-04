@@ -52,8 +52,9 @@ def change_des_path():
 
 
 def get_list_sap():
-    sap_input: str  = input("Nhập số SAP cách nhau bởi ký tự không phải số: ")
+    sap_input: str  = input("Nhập số SAP cách nhau bởi ký tự không phải số: ").strip()
     os.system('cls')
+    
     sap_list : list = [s.strip() for s in re.split(r'\D+', sap_input)]
     confirm : str = input(f"Danh sách SAP: {apply_color(sap_list)} — Nhấn Enter để xác nhận, N để nhập lại: ")
     os.system('cls')

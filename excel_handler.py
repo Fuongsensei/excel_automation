@@ -45,7 +45,7 @@ def call_macro(des_path,user_input):
         }
         macro_delete = wb.macro("Xoa_Data")
         macro_run_data = wb.macro('chay_Data')
-
+        t.sleep(3)
         macros[user_input]()
         t.sleep(1)
         macro_delete()
