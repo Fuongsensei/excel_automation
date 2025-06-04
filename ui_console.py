@@ -4,23 +4,31 @@ from colorama import init, Fore
 from blessed import Terminal
 import getpass
 import constains
-
 init()
 
 if os.name == "nt":
     os.environ.setdefault("TERM", "xterm")
+
+term = Terminal()
+
+def print_center_noitice(noitice:str)-> None:
+    print(term.center(term.black_on_white(noitice)))
+
+pcn = print_center_noitice
 def apply_color(text : str | list ):
     if isinstance(text, str):
         return Fore.GREEN + text + Fore.RESET
     return ''.join([f"|{Fore.GREEN}{char}{Fore.RESET}|" for char in text])
 
+
 def print_authors():
-    msg : str = 'Dev by phuongnguyen1183 using Python, compiled to C'
+    msg : str = (' '*35)+'Dev by phuong_nguyen1183 using Python, compiled to C'+(' '*35)
     for c in msg.upper():
         sys.stdout.write(apply_color(c))
         sys.stdout.flush()
-        time.sleep(0.02)
+        time.sleep(0.015)
     print('\n'*2)
+
 
 def get_des_path(callback):
     path_file : str = rf"C:\Users\{getpass.getuser()}\Documents\path.txt"
@@ -36,10 +44,12 @@ def get_des_path(callback):
         os.system('cls')
         return new_path
 
+
 def change_des_path():
     new_path : str = input("Nhập đường dẫn mới: ")
     os.system('cls')
     return new_path
+
 
 def get_list_sap():
     sap_input: str  = input("Nhập số SAP cách nhau bởi ký tự không phải số: ")
@@ -48,6 +58,7 @@ def get_list_sap():
     confirm : str = input(f"Danh sách SAP: {apply_color(sap_list)} — Nhấn Enter để xác nhận, N để nhập lại: ")
     os.system('cls')
     return sap_list if confirm.upper() != 'N' else get_list_sap()
+
 
 def print_loading():
     
@@ -62,6 +73,7 @@ def print_loading():
             time.sleep(0.03)
         constains.done.clear()
     print('\n' * 10)
+
 
 def ask_user(question) ->bool:
     user_input : str = input(f"\n {question} ? [{apply_color('Y')}/'N]:     ")
@@ -79,7 +91,7 @@ def print_user_table_clean(data):
     table = Table(
         show_header=True,
         header_style="bold white on black",
-        border_style="white",
+        border_style="white", 
         padding=(0, 0)
     )
 
@@ -94,14 +106,46 @@ def print_user_table_clean(data):
     for i, row in data.iterrows():
         styled_row = [Text(str(i), style="black on white")]
         for cell in row:
-            value = str(cell) if str(cell) != "nan" else ""
+            value = str(cell) if str(cell) != "nan" else " "
             styled_row.append(Text(value, style="black on white"))
         table.add_row(*styled_row)
 
         if i < len(data) - 1:
             table.add_row(*top_blank)
-
-    # 👇 Thêm khoảng cách trái/phải bằng Padding
-    padded_table = Padding(table, (0, 2))  # (top_bottom, left_right)
-
+    padded_table = Padding(table, (0, 2)) 
     console.print(padded_table)
+
+
+def  save_selected_keyins(data) -> list[int]:
+        from getpass import getuser
+        path:str = rf"C:\Users\{getpass.getuser()}\Documents\keyins_list.txt"
+        is_exist : bool = os.path.exists(path)
+        if not is_exist:
+                user_input :str  =input(f'Vui lòng chọn SAP keyins từ {data.index.min()} tới {data.index.max()} ')
+                user_input = user_input.strip()
+                keyins_list : list[int ]= [int(i) for i in re.split(r'\D+',user_input)]
+                with open(path,mode='w') as file:
+                        for i in keyins_list:
+                                file.write(f'{str(i)}'+'\n')
+                        return keyins_list
+        else: 
+                with open(path,mode='r') as file:
+                        data : list [str] = file.readlines()
+                        keyins_list_mode_r = [int(i) for i in data]
+                        is_reselect = input(f'Danh sách keyins bạn đã chọn lúc nãy {apply_color(keyins_list_mode_r)} bạn có muốn chọn lại ? [{apply_color('Y')}]/N:    ')
+                        if is_reselect.upper() != 'Y': return keyins_list_mode_r
+                        else : return reselect_keyins_users(path)
+
+                        
+
+
+def reselect_keyins_users(path:str)-> list[int]:
+    user_input = input('Vui lòng nhập SAP keyins mới :   ').strip()
+    users = [user.strip() for user in re.split(r'\D+',user_input)]
+    data = [int(user) for user in users]
+    with open(path,mode='w') as file:
+        for i in data:
+            file.write(f'{str(i)}'+'\n')
+    return data
+
+

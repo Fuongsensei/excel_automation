@@ -1,23 +1,15 @@
 #pylint:disable = all
-from ui_console import print_authors, get_des_path, change_des_path, get_list_sap, print_loading,ask_user
+from ui_console import print_authors, get_des_path, change_des_path, get_list_sap, print_loading,ask_user,pcn
 import excel_handler as exh
 from users_process import get_users,all_users_list
 from data_utils import create_dataframe, concat_df, resize_dataframe, filter_df, unique_data,load_data_with_key, df_list, password, day, in_day, night
 import threading as th
 import time
 import os
-if os.name == "nt":
-    os.environ.setdefault("TERM", "xterm")
-from blessed import Terminal
-from file_utils import copy_file_from_net
 import constains
+from file_utils import copy_file_from_net
 
-
-
-# Fix TERM error cho Windows
-if os.name == "nt":
-    os.environ.setdefault("TERM", "xterm")
-
+#set global variable
 global_des_path :str =''
 global_user_input = ''
 
@@ -31,8 +23,9 @@ def process()->None:
     
     exh.open_file(des_path)
     print('\n'*4)
-    print(constains.term.center("----->   Nhập 1 để chọn ca ngày   <-----"))
-    print(constains.term.center("----->   Nhập 2 để chọn ca đêm    <-----"))
+    pcn("----->   Nhập 1 để chọn ca ngày   <-----")
+    print('\n'*2)
+    pcn("----->   Nhập 2 để chọn ca đêm    <-----")
 
     user_input = input()
     global_user_input = user_input
@@ -92,10 +85,12 @@ def process_after(path: str)->None:
         if ask_user('BẠN CÓ MUỐN XÓA NGÀY CŨ KHÔNG ?'):
             exh.delete_blank(path)
             exh.delete_entered_on_date(path,exh.get_criteria(path))
+            print('\n'*5)
             exh.delete_na(path)
         else:
             os.system('cls')
             exh.delete_blank(path)
+            print('\n'*5)
             exh.delete_na(path)
             return
         
@@ -104,7 +99,6 @@ print_authors()
 
 
 def main():
-    
     global global_des_path 
     global global_user_input
     task_1 : th.Thread = th.Thread(target=run_macro)
@@ -127,9 +121,10 @@ def main():
 
 if __name__ == "__main__":
     while True:
-        print(constains.term.center("NHẬP 'EXIT' ĐỂ THOÁT"))
+        pcn("  NHẬP 'EXIT' ĐỂ THOÁT  ")
         print('\n' * 5)
-        print(constains.term.center("NHẤN ENTER ĐỂ TIẾP TỤC"))
+        pcn("  NHẤN ENTER ĐỂ TIẾP TỤC  ")
         if input().upper() == 'EXIT': break
+
         os.system('cls')
         main()

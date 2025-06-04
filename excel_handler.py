@@ -9,10 +9,7 @@ import datetime as dt
 import win32com.client
 from xlsx2csv import Xlsx2csv
 import re
-from ui_console import print_user_table_clean
-if os.name == "nt":
-    os.environ.setdefault("TERM", "xterm")
-from blessed import Terminal
+from ui_console import print_user_table_clean,save_selected_keyins,pcn
 
 def clear_sheet_data(wb) -> None:
         sheet = wb.sheets["Verify data"]
@@ -30,8 +27,8 @@ def write_df_to_excel(data, des_path:str, callback_1,callback_2) -> None:
                 sheet.range('A2:N2').value = data.values
                 wb.save()
         except Exception:
-                print(f'\nLỗi xung đột: File đang mở — sẽ tự đóng.')
-        callback_2("EXCEL.EXE")
+                pcn(f'\nLỗi xung đột: File đang mở — sẽ tự đóng.')
+                callback_2("EXCEL.EXE")
 
 
 def close_excel(app_name: str) -> None:
@@ -72,7 +69,7 @@ def open_file(path:str) -> None:
                 os.startfile(path)
                 return
         else :
-                print("FILE ĐANG ĐƯỢC MỞ ")
+                pcn("  FILE ĐANG ĐƯỢC MỞ  ")
                 return
 
 
@@ -84,7 +81,7 @@ def delete_blank(path):
         last_row : int = sheet.range(last_rng,1).end('up').row
         sheet.api.Range(f'A{last_row+1}:A{last_rng}').EntireRow.Delete()
         wb.save()
-        print('ĐÃ XÓA CÁC DÒNG TRỐNG')
+        pcn('  ĐÃ XÓA CÁC DÒNG TRỐNG  ')
 
 
 def get_criteria(path:str):
@@ -118,14 +115,14 @@ def delete_entered_on_date(path: str,criteria:str)-> None:
                 try:
                         visible_row = sheet.api.Range(f'C2:C{last_row}').SpecialCells(12)
                         visible_row.EntireRow.Delete()
-                        print("ĐÃ XÓA NGÀY CŨ")
+                        pcn("  ĐÃ XÓA NGÀY CŨ  ")
                         
 
                 except Exception as er:
-                        print('KHÔNG TÌM THẤY ')
+                        pcn(' KHÔNG TÌM THẤY ')
                 
                 sheet.api.ShowAllData()
-        else : print("KHÔNG CÓ NGÀY CŨ ĐỂ XÓA")
+        else : pcn(" KHÔNG CÓ NGÀY CŨ ĐỂ XÓA ")
         
 
 def delete_na(path)->None:
@@ -133,12 +130,16 @@ def delete_na(path)->None:
         # Xóa #N/A trong sheet 'Label (16 So)'
         sheet=wb.sheets['Label (16 So)']
         last_row : int = sheet.range((sheet.cells.last_cell).row,25).end('up').row
-        print(last_row)
         sheet.api.Range('Y1').AutoFilter(Field=25,Criteria1='#N/A')
-        visible_rows = sheet.api.Range(f'Y2:Y{last_row}').SpecialCells(12)
-        visible_rows.EntireRow.Delete()
-        sheet.api.ShowAllData()
-        print('ĐÃ XÓA #N/A')
+        try:        
+                visible_rows = sheet.api.Range(f'Y2:Y{last_row}').SpecialCells(12)
+                visible_rows.EntireRow.Delete()
+                sheet.api.ShowAllData()
+                pcn(' ĐÃ XÓA #N/A ')
+        except Exception :
+                sheet.api.ShowAllData()
+                pcn(' Không có #N/A để xóa ')
+                return
 
 
 
@@ -146,17 +147,12 @@ def write_user_to_sheet(data: pd.DataFrame , path: str):
                 wb = xw.Book(path,update_links=False)
                 sheet=wb.sheets['User']
                 table = sheet.api.ListObjects('Table3')
-                for i in range(len(data)-1):
-                        print(data.iloc[i].values)
-                        print('\n'*3)
                 last_row : int = sheet.range((sheet.cells.last_cell).row,1).end('up').row
                 print_user_table_clean(data)
+                choose_list = save_selected_keyins(data)
                 if last_row > 4 :
                         sheet.api.Range(f'A{4+1}:A{last_row}').EntireRow.Delete()
                 else : pass
-                user_input : str = input(f"VUI LÒNG CHỌN SAP KEYIN TỪ {data.index.max()} ĐẾN {data.index.min()}:       ")
-                user_input = user_input.strip()
-                choose_list : list[int] = [int(i) for i in re.split(r'\D+',user_input)]
                 for i , row in enumerate(choose_list):
                                 start = 4 + i
                                 sheet.range(f'A{start}:H{start}').value = data.iloc[row].values
