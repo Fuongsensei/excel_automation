@@ -1,9 +1,13 @@
 #pylint:disable = all
-from operator import call
 import os
 import  shutil, getpass
-import datetime as dt 
+import datetime as dt
+from ui_console import get_list_sap
+import sys
+count = 0 
+
 def copy_file_from_net(sap_list) -> list[str]:
+    global count 
     current_user : str  = getpass.getuser()
     current_time : dt  = dt.date.today()
     short_month : str  = current_time.strftime('%b')
@@ -19,7 +23,10 @@ def copy_file_from_net(sap_list) -> list[str]:
     except Exception as e:
         os.system('cls')
         print(f"Không tìm thấy file cho SAP {sap}. Vui lòng kiểm tra lại đường dẫn hoặc số SAP ...")
-        os._exit(0)
+        if count <=10:
+            count+=1
+            return copy_file_from_net(get_list_sap())
+        else:os._exit(0)
 
 
 
