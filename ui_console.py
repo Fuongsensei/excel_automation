@@ -1,20 +1,33 @@
 #pylint:disable = all
 import sys, os, time, re
 from colorama import init, Fore
-from blessed import Terminal
 import getpass
 import constains
-init()
+from rich.console import Console
+from rich.table import Table
+from rich.padding import Padding
+from rich.align import Align
+from rich.text import Text
+from rich.style import Style
 
-if os.name == "nt":
-    os.environ.setdefault("TERM", "xterm")
+init(autoreset=True)  
 
-term = Terminal()
 
-def print_center_noitice(noitice:str)-> None:
-    print(term.center(term.black_on_white(noitice)))
 
-pcn = print_center_noitice
+
+console = Console()
+
+def print_center_notice(notice: str) -> None:
+    # Tạo style: chữ đen trên nền trắng
+    style = Style(color="black", bgcolor="white")
+    # Tạo đối tượng Text có style
+    styled_text = Text(notice, style=style)
+    # Căn giữa và in ra
+    console.print(Align.center(styled_text))
+
+
+pcn = print_center_notice
+
 def apply_color(text : str | list ):
     if isinstance(text, str):
         return Fore.GREEN + text + Fore.RESET
@@ -76,15 +89,12 @@ def print_loading():
 
 
 def ask_user(question) ->bool:
-    user_input : str = input(f"\n {question} ? [{apply_color('Y')}/'N]:     ")
+    user_input : str = input(f"\n {question}  [{apply_color('Y')}/'N]:     ")
     os.system('cls')
     return True if user_input.upper() != 'N' else False
 
 
-from rich.console import Console
-from rich.table import Table
-from rich.text import Text
-from rich.padding import Padding
+
 
 def print_user_table_clean(data):
     console = Console()

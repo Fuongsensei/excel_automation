@@ -37,10 +37,8 @@ def process()->None:
 
     if user_input in ('1', '2'):
         sap_list = get_list_sap()
-        constains.progress += 10; constains.done.set()
-
         path_list = copy_file_from_net(sap_list)
-        constains.progress += 10; constains.done.set()
+        constains.progress += 20; constains.done.set()
 
         create_dataframe(load_data_with_key,path_list)
         constains.progress += 20; constains.done.set()

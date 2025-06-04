@@ -3,7 +3,6 @@ import os
 import  shutil, getpass
 import datetime as dt
 from ui_console import get_list_sap
-import sys
 count = 0 
 
 def copy_file_from_net(sap_list) -> list[str]:

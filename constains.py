@@ -1,6 +1,5 @@
 #pylint:disable = all
 import threading as th 
-import platform
 
 
 # Define global variables and events
