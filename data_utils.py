@@ -6,7 +6,7 @@ import msoffcrypto
 import io
 from xlsx2csv import Xlsx2csv
 
-df_list : list  = []
+
 
 password : str = 'J@bil2022'
 
@@ -14,12 +14,12 @@ day : datetime = datetime.today().replace(hour=6,minute=0,second=0)
 in_day : datetime = day.replace(hour=23,minute=59,second=59)
 night : datetime = (day - timedelta(days=1)).replace(hour=18,minute=0,second=0)
 
-def load_data_with_key(path, password):
+def load_data_with_key(path:str, password:str,df_list:list) -> None:
         try:
                 with open(path, 'rb') as file:
-                        office_file = msoffcrypto.OfficeFile(file)
+                        office_file :msoffcrypto.OfficeFile = msoffcrypto.OfficeFile(file)
                         office_file.load_key(password)
-                        decrypted = io.BytesIO()
+                        decrypted : io.BytesIO = io.BytesIO()
                         office_file.decrypt(decrypted)
                         df : pd.DataFrame = pd.read_excel(decrypted)
                         df_list.append(df)
@@ -27,10 +27,10 @@ def load_data_with_key(path, password):
                 df = pd.read_excel(path)
                 df_list.append(df)
 
-def create_dataframe(dercrypt,list_file_path : list )-> None:
+def create_dataframe(dercrypt,list_file_path : list,df_list:list )-> None:
         threads : list[th.Thread] = []
         for path in list_file_path:
-                task = th.Thread(target=dercrypt,args=(path,password))
+                task = th.Thread(target=dercrypt,args=(path,password,df_list))
                 task.start()
                 threads.append(task)
                 

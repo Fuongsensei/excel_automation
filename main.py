@@ -2,7 +2,7 @@
 from ui_console import print_authors, get_des_path, change_des_path, get_list_sap, print_loading,ask_user,pcn
 import excel_handler as exh
 from users_process import get_users,all_users_list
-from data_utils import create_dataframe, concat_df, resize_dataframe, filter_df, unique_data,load_data_with_key, df_list, password, day, in_day, night
+from data_utils import create_dataframe, concat_df, resize_dataframe, filter_df, unique_data,load_data_with_key, day, in_day, night
 import threading as th
 import time
 import os
@@ -14,6 +14,8 @@ global_des_path :str =''
 global_user_input = ''
 
 def process()->None:
+    df_list : list  = []
+    list_of_paths : list[str] = []
     global global_des_path 
     global global_user_input
 
@@ -37,10 +39,10 @@ def process()->None:
 
     if user_input in ('1', '2'):
         sap_list = get_list_sap()
-        path_list = copy_file_from_net(sap_list)
+        path_list = copy_file_from_net(sap_list,list_of_paths)
         constains.progress += 20; constains.done.set()
 
-        create_dataframe(load_data_with_key,path_list)
+        create_dataframe(load_data_with_key,path_list,df_list)
         constains.progress += 20; constains.done.set()
 
         df = concat_df(df_list, resize_dataframe)
@@ -80,18 +82,24 @@ def run_macro()->None:
         return
 
 def process_after(path: str)->None:
+    try :
         if ask_user('BẠN CÓ MUỐN XÓA NGÀY CŨ KHÔNG ?'):
             exh.delete_blank(path)
             exh.delete_entered_on_date(path,exh.get_criteria(path))
             print('\n'*5)
             exh.delete_na(path)
+            os.system('cls')
         else:
             os.system('cls')
             exh.delete_blank(path)
             print('\n'*5)
             exh.delete_na(path)
+            os.system('cls')
             return
-        
+    except Exception as e:
+        print('CÓ LỖI XẢY RA KHI XÓA NGÀY CŨ')
+        os.system('cls')
+        return
         
 print_authors()
 

@@ -8,7 +8,6 @@ import pandas as pd
 import datetime as dt 
 import win32com.client
 from xlsx2csv import Xlsx2csv
-import re
 from ui_console import print_user_table_clean,save_selected_keyins,pcn
 
 def clear_sheet_data(wb) -> None:
@@ -119,7 +118,7 @@ def delete_entered_on_date(path: str,criteria:str)-> None:
                         
 
                 except Exception as er:
-                        pcn(' KHÔNG TÌM THẤY ')
+                        pcn(' KHÔNG TÌM THẤY NGÀY CŨ ')
                 
                 sheet.api.ShowAllData()
         else : pcn(" KHÔNG CÓ NGÀY CŨ ĐỂ XÓA ")

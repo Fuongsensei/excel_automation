@@ -35,7 +35,7 @@ def apply_color(text : str | list ):
 
 
 def print_authors():
-    msg : str = (' '*35)+'Dev by phuong_nguyen1183 using Python, compiled to C'+(' '*35)
+    msg : str = (' '*35)+'Dev by phuong_nguyen_1183 using Python, compiled to C'+(' '*35)
     for c in msg.upper():
         sys.stdout.write(apply_color(c))
         sys.stdout.flush()
@@ -127,13 +127,14 @@ def print_user_table_clean(data):
 
 
 def  save_selected_keyins(data) -> list[int]:
-        from getpass import getuser
         path:str = rf"C:\Users\{getpass.getuser()}\Documents\keyins_list.txt"
+        
         is_exist : bool = os.path.exists(path)
+        
         if not is_exist:
                 user_input :str  =input(f'Vui lòng chọn SAP keyins từ {data.index.min()} tới {data.index.max()} ')
                 user_input = user_input.strip()
-                keyins_list : list[int ]= [int(i) for i in re.split(r'\D+',user_input)]
+                keyins_list : list [int] = [int(i) for i in re.split(r'\D+',user_input)]
                 with open(path,mode='w') as file:
                         for i in keyins_list:
                                 file.write(f'{str(i)}'+'\n')
