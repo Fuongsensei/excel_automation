@@ -172,17 +172,17 @@ all_users_list : list = [{
 
 
 def get_users(users_list_of_dict : list[dict])->pd.DataFrame:
-    path :str = rf"C:\Users\{getpass.getuser()}\Documents\user.csv"
-    is_exist:bool = os.path.exists(path)
-    if is_exist:
-        data = pd.read_csv(path)
+        path :str = rf"C:\Users\{getpass.getuser()}\Documents\user.csv"
+        is_exist:bool = os.path.exists(path)
+        if is_exist:
+                data = pd.read_csv(path)
         
-        return data
-    else :
-        data = pd.DataFrame(all_users_list)
-        data.to_csv(path,index=False, encoding='utf-8-sig')
+                return data
+        else :
+                data = pd.DataFrame(all_users_list)
+                data.to_csv(path,index=False, encoding='utf-8-sig')
         
-        return data
+                return data
 
 
 

@@ -45,17 +45,22 @@ def print_authors():
 
 def get_des_path(callback):
     path_file : str = rf"C:\Users\{getpass.getuser()}\Documents\path.txt"
-    if os.path.exists(path_file):
-        with open(path_file) as f:
-            path = f.read()
-        if input(f"Đường dẫn hiện tại là {path}. Thay đổi? [{apply_color('Y')}/N]: ").upper() == 'Y':
-            os.system('cls'); return callback()
-        os.system('cls'); return path
-    else:
-        new_path : str = input(f"Dán đường dẫn file {apply_color('Report Scan Verify Shiftly (RCV)')}: ")
-        with open(path_file, 'w') as f: f.write(new_path)
-        os.system('cls')
-        return new_path
+    try:
+        if os.path.exists(path_file):
+            with open(path_file) as f:
+                path = f.read()
+            if input(f"Đường dẫn hiện tại là {path}. Thay đổi? [{apply_color('Y')}/N]: ").upper() == 'Y':
+                os.system('cls'); return callback()
+            os.system('cls'); return path
+        else:
+            new_path : str = input(f"Dán đường dẫn file {apply_color('Report Scan Verify Shiftly (RCV)')}: ")
+            with open(path_file, 'w') as f: f.write(new_path)
+            os.system('cls')
+            return new_path
+    except Exception as e:
+        print(f'Không tìm thấy file Documents sau đây sẽ tự tạo - error  {e}')
+        os.makedirs(rf"C:\Users\{getpass.getuser()}\Documents",exist_ok=True)
+        return get_des_path(callback)
 
 
 def change_des_path():
@@ -141,9 +146,9 @@ def  save_selected_keyins(data) -> list[int]:
                         return keyins_list
         else: 
                 with open(path,mode='r') as file:
-                        data : list [str] = file.readlines()
-                        keyins_list_mode_r = [int(i) for i in data]
-                        is_reselect = input(f'Danh sách keyins bạn đã chọn lúc nãy {apply_color(keyins_list_mode_r)} bạn có muốn chọn lại ? [{apply_color('Y')}]/N:    ')
+                        data_list: list [str] = file.readlines()
+                        keyins_list_mode_r : list [int] = [int(i) for i in data_list]
+                        is_reselect : str  = input(f'Danh sách keyins bạn đã chọn lúc nãy {apply_color(keyins_list_mode_r)} bạn có muốn chọn lại ? [{apply_color('Y')}]/N:    ')
                         if is_reselect.upper() != 'Y': return keyins_list_mode_r
                         else : return reselect_keyins_users(path)
 
@@ -151,7 +156,7 @@ def  save_selected_keyins(data) -> list[int]:
 
 
 def reselect_keyins_users(path:str)-> list[int]:
-    user_input = input('Vui lòng nhập SAP keyins mới :   ').strip()
+    user_input = input('Vui lòng nhập chỉ mục SAP keyins mới :   ').strip()
     users = [user.strip() for user in re.split(r'\D+',user_input)]
     data = [int(user) for user in users]
     with open(path,mode='w') as file:

@@ -1,7 +1,7 @@
 #pylint:disable = all
 
 import xlwings as xw
-import psutil
+import  getpass
 import time as t 
 import os
 import pandas as pd
@@ -25,16 +25,17 @@ def write_df_to_excel(data, des_path:str, callback_1,callback_2) -> None:
                 sheet = wb.sheets['Verify data']
                 sheet.range('A2:N2').value = data.values
                 wb.save()
-        except Exception:
+        except Exception as e:
+                pcn(f'{type(e).__name__} - {e}')
                 pcn(f'\nLỗi xung đột: File đang mở — sẽ tự đóng.')
-                callback_2("EXCEL.EXE")
+                callback_2(wb,des_path)
 
 
-def close_excel(app_name: str) -> None:
-        for proc in psutil.process_iter():
-                if proc.name() == app_name:
-                        proc.kill()
-
+def close_excel(wb: xw.Book,path: str) -> None:
+        wb.save()
+        wb.close()
+        t.sleep(4)
+        os.startfile(path)
 
 def call_macro(des_path,user_input):
         wb = xw.Book(des_path)
@@ -50,6 +51,13 @@ def call_macro(des_path,user_input):
         macro_delete()
         t.sleep(3)
         macro_run_data()
+        max_wait : int = 30  
+        waited : int  = 0
+        while not wb.app.api.Ready and waited < max_wait:
+                print("Excel chưa hồi, đợi thêm tí bro...")
+                t.sleep(0.7)
+                waited += 0.5
+        print("Excel đã hồi, tiếp tục được rồi bro!")
 
 def check_state_file(path:str) -> bool:
         file_name = os.path.basename(path)
@@ -84,11 +92,17 @@ def delete_blank(path):
 
 
 def get_criteria(path:str):
-        import  getpass
-        csv_path : str =rf"C:\Users\{getpass.getuser()}\Documents\entered_date.csv"
         
-        Xlsx2csv(path,outputencoding='utf-8').convert(csv_path,sheetid=3)
+        try:        
+                csv_path : str =rf"C:\Users\{getpass.getuser()}\Documents\entered_date.csv"
         
+                Xlsx2csv(path,outputencoding='utf-8').convert(csv_path,sheetid=3)
+        except Exception as e:
+                
+                print(f'Lỗi không tìm thấy file Documents sau đây sẽ tự tạo - {e}' )
+                os.makedirs(rf"C:\Users\{getpass.getuser()}\Documents",exist_ok=True)
+                Xlsx2csv(path,outputencoding='utf-8').convert(csv_path,sheetid=3)
+                
         entered_str_date : pd.DataFrame = pd.read_csv(csv_path,usecols=[2],dtype=str)
         entered_date = pd.to_datetime(entered_str_date.iloc[:,0],format='%m-%d-%y')
         
@@ -98,9 +112,13 @@ def get_criteria(path:str):
         if not is_false:
                 max : int = mask.idxmax()
                 min : int = mask.idxmin()
-                if entered_date[max] > entered_date[min]: return dt.datetime.strftime(entered_date[min],format='%m/%d/%Y')
+                if entered_date[max] > entered_date[min]:
+                        _date : dt.date = entered_date[min]
+                        return f'{_date.month}/{_date.day}/{_date.year}'
         
-                else:  return dt.datetime.strftime(entered_date[max],format='%m/%d/%Y')
+                else:
+                        _date : dt.date = entered_date[max]
+                        return f'{_date.month}/{_date.day}/{_date.year}'
                 
                 
         else : return None
@@ -136,7 +154,8 @@ def delete_na(path)->None:
                 sheet.api.ShowAllData()
                 pcn(' ĐÃ XÓA #N/A ')
         except Exception :
-                sheet.api.ShowAllData()
+                if sheet.api.AutoFilter and sheet.api.FilterMode:        
+                        sheet.api.ShowAllData()
                 pcn(' Không có #N/A để xóa ')
                 return
 
