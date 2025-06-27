@@ -8,11 +8,15 @@ from xlsx2csv import Xlsx2csv
 
 
 
-password : str = 'J@bil2022'
 
-day : datetime = datetime.today().replace(hour=6,minute=0,second=0)
-in_day : datetime = day.replace(hour=23,minute=59,second=59)
-night : datetime = (day - timedelta(days=1)).replace(hour=18,minute=0,second=0)
+def create_password(password: str):
+                return password
+
+def create_day():
+        day : datetime = datetime.today().replace(hour=6,minute=0,second=0)
+        in_day : datetime = day.replace(hour=23,minute=59,second=59)
+        night : datetime = (day - timedelta(days=1)).replace(hour=18,minute=0,second=0)
+        return day,in_day,night
 
 def load_data_with_key(path:str, password:str,df_list:list) -> None:
         try:

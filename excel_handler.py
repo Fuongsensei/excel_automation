@@ -9,6 +9,7 @@ import datetime as dt
 import win32com.client
 from xlsx2csv import Xlsx2csv
 from ui_console import print_user_table_clean,save_selected_keyins,pcn
+import run_sapgui as rsg
 
 def clear_sheet_data(wb) -> None:
         sheet = wb.sheets["Verify data"]
@@ -35,29 +36,26 @@ def close_excel(wb: xw.Book,path: str) -> None:
         wb.save()
         wb.close()
         t.sleep(4)
-        os.startfile(path)
+        wb_again = xw.Book(path,update_links=False)
+        
 
 def call_macro(des_path,user_input):
-        wb = xw.Book(des_path)
-        macros : dict = {
-        '1': wb.macro("Ngay"),
-        '2': wb.macro('DEM')
-        }
-        macro_delete = wb.macro("Xoa_Data")
-        macro_run_data = wb.macro('chay_Data')
-        t.sleep(3)
-        macros[user_input]()
-        t.sleep(1)
-        macro_delete()
-        t.sleep(3)
-        macro_run_data()
-        max_wait : int = 30  
-        waited : int  = 0
-        while not wb.app.api.Ready and waited < max_wait:
-                print("Excel chưa hồi, đợi thêm tí bro...")
-                t.sleep(0.7)
-                waited += 0.5
-        print("Excel đã hồi, tiếp tục được rồi bro!")
+        wb = xw.Book(des_path,update_links = False)
+        year = rsg.get_year()
+        posting_date = rsg.get_posting_date(user_input)
+        entered_date = rsg.get_entered_date()
+
+        rsg.copy_wdid_user(wb)
+
+        file_10 = rsg.get_file_grn(10)
+        file_16 = rsg.get_file_grn(16)
+
+        rsg.auto_sapgui_grn_10(year,file_10['file_name'],file_10['file_path'],posting_date,entered_date)
+        rsg.copy_grn_10(file_10['file_path'],wb)
+
+        rsg.auto_sapgui_grn_16(year,file_16['file_name'],entered_date)
+        rsg.copy_grn_16(file_16['file_path'],wb)
+
 
 def check_state_file(path:str) -> bool:
         file_name = os.path.basename(path)
