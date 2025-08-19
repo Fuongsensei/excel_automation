@@ -9,8 +9,7 @@ from xlsx2csv import Xlsx2csv
 
 
 
-def create_password(password: str):
-                return password
+password="J@bil2022"
 
 def create_day():
         day : datetime = datetime.today().replace(hour=6,minute=0,second=0)

@@ -9,7 +9,7 @@ import datetime as dt
 import win32com.client
 from xlsx2csv import Xlsx2csv
 from ui_console import print_user_table_clean,save_selected_keyins,pcn
-import run_sapgui as rsg
+# import run_sapgui as rsg
 
 def clear_sheet_data(wb) -> None:
         sheet = wb.sheets["Verify data"]
@@ -40,6 +40,7 @@ def close_excel(wb: xw.Book,path: str) -> None:
         
 
 def call_macro(des_path,user_input):
+        rsg.delete_data()
         wb = xw.Book(des_path,update_links = False)
         year = rsg.get_year()
         posting_date = rsg.get_posting_date(user_input)
@@ -71,7 +72,7 @@ def check_state_file(path:str) -> bool:
 
 def open_file(path:str) -> None:
         if not check_state_file(path):
-                os.startfile(path)
+                wb = xw.Book(path,update_links=False)
                 return
         else :
                 pcn("  FILE ĐANG ĐƯỢC MỞ  ")
@@ -148,7 +149,9 @@ def delete_na(path)->None:
         sheet.api.Range('Y1').AutoFilter(Field=25,Criteria1='#N/A')
         try:        
                 visible_rows = sheet.api.Range(f'Y2:Y{last_row}').SpecialCells(12)
-                visible_rows.EntireRow.Delete()
+                if visible_rows.Areas.Count > 0:
+                   for i in visible_rows.Areas:
+                        i.EntireRow.Delete()
                 sheet.api.ShowAllData()
                 pcn(' ĐÃ XÓA #N/A ')
         except Exception :

@@ -9,10 +9,14 @@ from rich.padding import Padding
 from rich.align import Align
 from rich.text import Text
 from rich.style import Style
+from pandas import DataFrame
+from constains import yaml_path
+import yaml
+
+import ctypes
+
 
 init(autoreset=True)  
-
-
 
 
 console = Console()
@@ -28,13 +32,13 @@ def print_center_notice(notice: str) -> None:
 
 pcn = print_center_notice
 
-def apply_color(text : str | list ):
+def apply_color(text : str | list ) -> str|list:
     if isinstance(text, str):
         return Fore.GREEN + text + Fore.RESET
     return ''.join([f"|{Fore.GREEN}{char}{Fore.RESET}|" for char in text])
 
 
-def print_authors():
+def print_authors()->None:
     msg : str = (' '*35)+'Dev by phuong_nguyen_1183 using Python, compiled to C'+(' '*35)
     for c in msg.upper():
         sys.stdout.write(apply_color(c))
@@ -43,42 +47,83 @@ def print_authors():
     print('\n'*2)
 
 
-def get_des_path(callback):
-    path_file : str = rf"C:\Users\{getpass.getuser()}\Documents\path.txt"
-    try:
-        if os.path.exists(path_file):
-            with open(path_file) as f:
-                path = f.read()
-            if input(f"Đường dẫn hiện tại là {path}. Thay đổi? [{apply_color('Y')}/N]: ").upper() == 'Y':
-                os.system('cls'); return callback()
-            os.system('cls'); return path
+def get_des_path(callback)->str:
+    ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0)
+    with open(yaml_path, 'r') as file:
+        config = yaml.safe_load(file)
+        path_file = config['path_report']
+        if path_file is None:
+           new_path : str = input(f"Dán đường dẫn file {apply_color('Report Scan Verify Shiftly (RCV)')}: ")
+           config['path_report'] = new_path
+           with open(yaml_path, 'w') as file:
+                yaml.dump(config, file, default_flow_style=False, allow_unicode=True,sort_keys=False)
+           os.system('cls'); return new_path.strip('"')
         else:
-            new_path : str = input(f"Dán đường dẫn file {apply_color('Report Scan Verify Shiftly (RCV)')}: ")
-            with open(path_file, 'w') as f: f.write(new_path)
-            os.system('cls')
-            return new_path
-    except Exception as e:
-        print(f'Không tìm thấy file Documents sau đây sẽ tự tạo - error  {e}')
-        os.makedirs(rf"C:\Users\{getpass.getuser()}\Documents",exist_ok=True)
-        return get_des_path(callback)
+          user_input :str = input(f"Đường dẫn hiện tại là {apply_color(path_file)} — Nhấn Enter để xác nhận, N thay đường dẫn: ").strip()
+          config['path_report'] = path_file if user_input.upper() != 'N' else callback()
+          with open(yaml_path,mode='w') as file:
+                yaml.dump(config, file, default_flow_style=False, allow_unicode=True,sort_keys=False);ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0x02)
+                os.system('cls');return config['path_report'].strip('"')
+    
 
 
-def change_des_path():
+
+def change_des_path()->str:
     new_path : str = input("Nhập đường dẫn mới: ")
-    os.system('cls')
-    return new_path
+    return new_path.strip('"')
+   
 
 
-def get_list_sap():
-    sap_input: str  = input("Nhập số SAP cách nhau bởi ký tự không phải số: ").strip()
-    os.system('cls')
-    sap_list : list = [s.strip() for s in re.split(r'\D+', sap_input)]
-    confirm : str = input(f"Danh sách SAP: {apply_color(sap_list)} — Nhấn Enter để xác nhận, N để nhập lại: ")
-    os.system('cls')
-    return sap_list if confirm.upper() != 'N' else get_list_sap()
+def get_list_sap()-> list[str]:
+    from users_process import add_user , remove_user, show_users
+    ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0)
+    with open(yaml_path, 'r', encoding='utf-8') as file:
+          config = yaml.safe_load(file)
+    data = DataFrame(config['verify'])
+    user_input = input(f'Danh sách verify {apply_color(config['selected_verify'])} bạn có muốn chọn lại [{apply_color('Y')}/N]? : ') 
+    
+    if user_input.upper() == 'Y'or config['selected_verify'][0] =='EMPTY' :
+       try:
+          print_user_table_clean(data)
+          sap_input: str  = input("Nhập số verify cách nhau bởi ký tự không phải số: ").strip()
+          os.system('cls')
+          selected : list = [int(s.strip()) for s in re.split(r'\D+', sap_input)]
+          verify_sap = data['SAP'].iloc[selected].tolist()
+          config['selected_verify'] = verify_sap
+          confirm : str = input(f"Danh sách số: {apply_color(verify_sap)} — Nhấn Enter để xác nhận, N để nhập lại: ")
+          os.system('cls')
+          with open(yaml_path, 'w', encoding='utf-8') as file:
+              yaml.dump(config, file, default_flow_style=False, allow_unicode=True, sort_keys=False)
+          return verify_sap if confirm.upper() != 'N' else get_list_sap();ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0x02)
+       except Exception as e:
+          if constains.count_get_sap==0:
+              print('Thân chưa mà giỡn dữ vậy thoát app nhé')
+              time.sleep(2)
+              os._exit(0)
+              print(f'Nhập đàng hoàng đi bro !{e}' )
+              time.sleep(2)
+              os.system('cls')
+              constains.count_get_sap -= 1
+              return get_list_sap()
+    elif user_input.upper().strip() == 'ADD':
+          os.system('cls')
+          add_user()
+          return get_list_sap()
+    elif user_input.upper().strip() == 'REMOVE':
+          os.system('cls')
+          remove_user()
+          return get_list_sap()
+    elif user_input.upper().strip() == 'SHOW':
+          os.system('cls')
+          show_users(print_user_table_clean,'data_entry')
+          show_users(print_user_table_clean,'verify')
+          return get_list_sap()
+    else:
+          os.system('cls');return config['selected_verify'];ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0x02)
+       
+    
 
-
-def print_loading():
+def print_loading()->None:
     
     while not constains.is_event.is_set():
         start = constains.progress
@@ -101,7 +146,7 @@ def ask_user(question) ->bool:
 
 
 
-def print_user_table_clean(data):
+def print_user_table_clean(data:DataFrame)->None:
     console = Console()
     table = Table(
         show_header=True,
@@ -131,37 +176,27 @@ def print_user_table_clean(data):
     console.print(padded_table)
 
 
-def  save_selected_keyins(data) -> list[int]:
-        path:str = rf"C:\Users\{getpass.getuser()}\Documents\keyins_list.txt"
+def  save_selected_keyins(path:str) -> list[int]:
         
-        is_exist : bool = os.path.exists(path)
+        ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0)
+        with open(path,mode='r') as file:
+                 config = yaml.safe_load(file)
+        data: DataFrame = DataFrame(config['data_entry'])
+        print()
+        print_user_table_clean(data)
+        select =  input(f'Các số SAP keyins {apply_color(config['selected_keyins'])} đang được chọn bạn có muốn chọn lại [{apply_color('Y')}/N]? : ').strip()
+        if select.upper() == 'Y':
+            user_input = input("Nhập các số keyins cách nhau bởi ký tự không phải số: ").strip()
+            keyins_list = [int(user.strip()) for user in re.split(r'\D+', user_input)]
+            config['selected_keyins'] = data['SAP'][keyins_list].tolist()
+            with open (path, mode='w', encoding='utf-8') as file:
+                      yaml.dump(config, file, default_flow_style=False, allow_unicode=True,sort_keys=False)
+                      ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0x02)
+                      return keyins_list
+        else:
+             ctypes.windll.kernel32.SetFileAttributesW(yaml_path, 0x02)
+             return config['selected_keyins']
         
-        if not is_exist:
-                user_input :str  =input(f'Vui lòng chọn SAP keyins từ {data.index.min()} tới {data.index.max()} ')
-                user_input = user_input.strip()
-                keyins_list : list [int] = [int(i) for i in re.split(r'\D+',user_input)]
-                with open(path,mode='w') as file:
-                        for i in keyins_list:
-                                file.write(f'{str(i)}'+'\n')
-                        return keyins_list
-        else: 
-                with open(path,mode='r') as file:
-                        data_list: list [str] = file.readlines()
-                        keyins_list_mode_r : list [int] = [int(i) for i in data_list]
-                        is_reselect : str  = input(f'Danh sách keyins bạn đã chọn lúc nãy {apply_color(keyins_list_mode_r)} bạn có muốn chọn lại ? [{apply_color('Y')}]/N:    ')
-                        if is_reselect.upper() != 'Y': return keyins_list_mode_r
-                        else : return reselect_keyins_users(path)
 
-                        
-
-
-def reselect_keyins_users(path:str)-> list[int]:
-    user_input = input('Vui lòng nhập chỉ mục SAP keyins mới :   ').strip()
-    users = [user.strip() for user in re.split(r'\D+',user_input)]
-    data = [int(user) for user in users]
-    with open(path,mode='w') as file:
-        for i in data:
-            file.write(f'{str(i)}'+'\n')
-    return data
-
+save_selected_keyins(yaml_path)
 

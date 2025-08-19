@@ -8,7 +8,7 @@ import os
 import pandas as pd
 
 
-def get_year()->None:
+def get_year() -> None:
     year  = dt.date.today().year
     return  year
 
@@ -123,7 +123,7 @@ def copy_grn_10(file_path,wb)-> None:
     
     
         sheet_grn_10 = wb.sheets['GRN (10 so)']
-        for i in ['A','H','I']:
+        for i in ['A','H','I','L','M','O','J']:
             sheet_grn_10.range(f'{i}:{i}').number_format = '@'
         sheet_grn_10.range('A1').value = data_grn_10.columns.tolist()  
         sheet_grn_10.range('A2').value = data_grn_10.values
@@ -171,6 +171,21 @@ def copy_grn_16(file_path,wb)->None:
     data_grn_16 = data_grn_16.drop(columns=data_grn_16.columns[23])
     data_grn_16['GRN Number'] = data_grn_16['GRN Number'].astype(str)
     sheet_grn_16 = wb.sheets['Label (16 So)']
-    sheet_grn_16.range('F:F').number_format = '@'
+
+    for m in ['C','F','J','H']:
+        sheet_grn_16.range(f'{m}:{m}').number_format = '@'
+
+    for i in ['U','V','W']:
+        sheet_grn_16.range(f'{i}:{i}').number_format = 'dd/mm/yyyy'
+
     sheet_grn_16.range('A1').value = data_grn_16.columns.tolist() 
     sheet_grn_16.range('A2').value = data_grn_16.values      
+
+def delete_data(wb) -> None:    
+    sheet_grn_10 = wb.sheets['GRN (10 so)']
+    sheet_grn_16 = wb.sheets['Label (16 So)']
+    last_row_10 = sheet_grn_10.range('A1048576').end('up').row
+    last_row_16 = sheet_grn_16.range('A1048576').end('up').row
+    sheet_grn_10.api.Range(f'A2:A{last_row_10}').EntireRow.Delete()
+    sheet_grn_16.api.Range(f'A2:A{last_row_16}').EntireRow.Delete()
+    print('  ĐÃ XÓA DỮ LIỆU TRONG CÁC BẢNG  ')
