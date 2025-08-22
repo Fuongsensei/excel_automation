@@ -112,6 +112,7 @@ def auto_sapgui_grn_10(year,file_name,file_path,posting_date,entered_date)->None
     time.sleep(3)
 
 def copy_grn_10(file_path,wb)-> None:
+        time.sleep(3)
         wb_export_grn_10 = xw.Book(file_path)
         wb_export_grn_10.close()
         data_grn_10 = pd.read_csv(file_path)
@@ -164,7 +165,7 @@ def auto_sapgui_grn_16(year,file_name,entered_date)->None:
 
 
 def copy_grn_16(file_path,wb)->None:
-
+    time.sleep(3)
     wb_export_grn_16 = xw.Book(file_path,update_links=False)
     wb_export_grn_16.close()
     data_grn_16 = pd.read_csv(file_path)
@@ -186,6 +187,8 @@ def delete_data(wb) -> None:
     sheet_grn_16 = wb.sheets['Label (16 So)']
     last_row_10 = sheet_grn_10.range('A1048576').end('up').row
     last_row_16 = sheet_grn_16.range('A1048576').end('up').row
-    sheet_grn_10.api.Range(f'A2:A{last_row_10}').EntireRow.Delete()
-    sheet_grn_16.api.Range(f'A2:A{last_row_16}').EntireRow.Delete()
-    print('  ĐÃ XÓA DỮ LIỆU TRONG CÁC BẢNG  ')
+    if last_row_10 >= 2 and last_row_16>=2:
+        sheet_grn_10.api.Range(f'A2:A{last_row_10}').EntireRow.Delete()
+        sheet_grn_16.api.Range(f'A2:A{last_row_16}').EntireRow.Delete()
+        
+    else:pass

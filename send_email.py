@@ -13,15 +13,17 @@ import yaml
 import socket
 from constains import yaml_path
 import pandas as pd
-
-
+import datetime 
+time = datetime.date.today()
+day = time.strftime('%d')
+month = time.strftime('%m')
+year = time.strftime('%Y')
 def get_email_and_password()-> tuple:
     with open(yaml_path,mode='r') as file:
         config = yaml.safe_load(file)
         print(config['email_from'])
-    email = config['email_from']
-    password = config['password']
-    return email, password
+        email = config['email_from']
+        password = config['password']
     if email == 'EMPTY' and password =='EMPTY':
         email_input = input('Vui lòng nhập email:       ').strip() + '@JABIL.COM'
         password_input = getpass4.getpass('Vui lòng nhập mật khẩu: ').strip()
@@ -29,16 +31,16 @@ def get_email_and_password()-> tuple:
         config['password'] =  password_input
         ctypes.windll.kernel32.SetFileAttributesW(yaml_path,0)
         with open(yaml_path,mode='w')  as file:
-              yaml.dump(config,file,default_flow_style=False,allow_unicode=True,sort_keys=False)
+            yaml.dump(config,file,default_flow_style=False,allow_unicode=True,sort_keys=False)
         return email_input,password_input
-
+    else:return email, password
 
 def get_mai_to()->str:  
 
-      with open(yaml_path, mode='r') as file:
+    with open(yaml_path, mode='r') as file:
         config = yaml.safe_load(file)
         for i,k in enumerate(config['LEAD_EMAIL']):
-              print(f"{i+1}. {k}")
+            print(f"{i+1}. {k}")
         choice = input("Chọn người nhận (nhập số hoặc 'all' để gửi cho tất cả): ").strip()
         if choice.lower() == 'all':
             return config['LEAD_EMAIL']
@@ -62,10 +64,11 @@ my_email = get_email_and_password()[0]
 my_password = get_email_and_password()[1]
 mail = MIMEMultipart()
 mail['From'] = my_email
-mail['To'] = 'PHUONG_NGUYEN1183@JABIL.COM'
-mail['Subject'] = 'Test Email'
-
-file_path = r"D:\Download\Report Scan Verify Shiftly (RCV).xlsm"
+mail['Subject'] = f'REPORT SCAN VERIFY NGAY {day}-{month}-{year} '
+mail['To'] = ', '.join(get_mai_to())
+print(mail['To'])
+print(mail['Subject'])
+file_path = rf"C:\Users\3601183\Desktop\Report Scan Verify Shiftly (RCV).xlsm"
 file_name = os.path.basename(file_path)
 with open(file_path, 'rb') as attachment:
     part = MIMEBase('application', 'octet-stream')
@@ -75,14 +78,14 @@ with open(file_path, 'rb') as attachment:
     mail.attach(part)
 
 def dispatch_an_email()->None:
-    mail['To'] = ', '.join(get_mai_to())
+    
    
     try:
         server = smtplib.SMTP('smtp.office365.com', 587)
         server.starttls()
         server.login(my_email,my_password)
         server.send_message(mail)
-        print(f"Email sent to {my_email} successfully!")
+        print(f"Email sent to {mail['To']} successfully!")
 
     except smtplib.SMTPAuthenticationError as e:
          print("Lỗi xác thực email hoặc mật khẩu!", e)
@@ -110,18 +113,18 @@ def dispatch_an_email()->None:
        except:
            pass
 
-file_path = r"D:\Download\Report Scan Verify Shiftly (RCV).xlsm"
+
 
 df = pd.read_excel(file_path, sheet_name='Summary',usecols=[3])
 df.columns = ['Status']
 not_na_df = df['Status'].notna()
 
-filter_df = (df['Status'] != 'Scan verification incomplete')
+filter_df = (df['Status'] != "Verification scan incomplete")
 
 if filter_df.all():
         print(filter_df.all())
         print("All values are 'Scan verification complete'")
-        send_email()
+        dispatch_an_email()
 else: 
         print(filter_df.all())
         print("There are values that are not 'Scan verification complete'")

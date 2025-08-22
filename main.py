@@ -6,9 +6,10 @@ from data_utils import create_dataframe, concat_df, resize_dataframe, filter_df,
 import threading as th
 import time
 import os
+import traceback
 import constains
 from file_utils import copy_file_from_net
-from send_email import send_email
+
 
 #set global variable
 global_des_path :str =''
@@ -35,10 +36,11 @@ def process()->None:
     os.system('cls')
 
 
-    #constains.get_user_and_path.set()
-    #constains.is_run_macro.wait()
+
 
     if user_input in ('1', '2'):
+        constains.get_user_and_path.set()
+        constains.is_run_macro.wait()
         sap_list = get_list_sap()
         path_list = copy_file_from_net(sap_list,list_of_paths)
         constains.progress += 20; constains.done.set()
@@ -52,7 +54,7 @@ def process()->None:
         shift_df = filter_df(df, create_day()[0] if user_input == '1' else create_day()[2],create_day()[1] if user_input == '1' else create_day()[0], unique_data)
         constains.progress += 20; constains.done.set()
 
-        #constains.macro_done.wait()
+        constains.macro_done.wait()
         exh.write_df_to_excel(shift_df,des_path,exh.clear_sheet_data,exh.close_excel)
         constains.progress += 20; constains.done.set()
         constains.is_event.set()
@@ -85,6 +87,7 @@ def run_macro()->None:
     except Exception as e:
         constains.is_run_macro.set()
         constains.macro_done.set()
+        traceback.print_exc()
         return
 
 def process_after(path: str)->None:
@@ -94,17 +97,17 @@ def process_after(path: str)->None:
             exh.delete_entered_on_date(path,exh.get_criteria(path))
             print('\n'*5)
             exh.delete_na(path)
-            os.system('cls')
+            
         else:
-            os.system('cls')
+            
             exh.delete_blank(path)
             print('\n'*5)
             exh.delete_na(path)
-            os.system('cls')
+            
             return
     except Exception as e:
         print('CÓ LỖI XẢY RA KHI XÓA NGÀY CŨ')
-        os.system('cls')
+        
         return
         
 print_authors()
@@ -113,13 +116,13 @@ print_authors()
 def main():
     global global_des_path 
     global global_user_input
-    #task_1 : th.Thread = th.Thread(target=run_macro)
+    task_1 : th.Thread = th.Thread(target=run_macro)
     task_2 : th.Thread = th.Thread(target=process)
     task_3 : th.Thread = th.Thread(target=print_loading)
     task_2.start()
-    #task_1.start()
+    task_1.start()
     task_3.start()
-    #task_1.join()
+    task_1.join()
     task_3.join()
     task_2.join()
     constains.macro_done.clear()

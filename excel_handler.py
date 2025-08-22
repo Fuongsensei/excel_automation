@@ -9,8 +9,8 @@ import datetime as dt
 import win32com.client
 from xlsx2csv import Xlsx2csv
 from ui_console import print_user_table_clean,save_selected_keyins,pcn
-# import run_sapgui as rsg
-
+import run_sapgui as rsg
+from users_process import yaml_path
 def clear_sheet_data(wb) -> None:
         sheet = wb.sheets["Verify data"]
         last_row = sheet.range("A" + str((sheet.cells.last_cell).row)).end('up').row
@@ -40,8 +40,9 @@ def close_excel(wb: xw.Book,path: str) -> None:
         
 
 def call_macro(des_path,user_input):
-        rsg.delete_data()
+        
         wb = xw.Book(des_path,update_links = False)
+        rsg.delete_data(wb)
         year = rsg.get_year()
         posting_date = rsg.get_posting_date(user_input)
         entered_date = rsg.get_entered_date()
@@ -90,54 +91,50 @@ def delete_blank(path):
         pcn('  ĐÃ XÓA CÁC DÒNG TRỐNG  ')
 
 
-def get_criteria(path:str):
+def get_criteria(path:str)->list:
         
+        date_list  = []
         try:        
-                csv_path : str =rf"C:\Users\{getpass.getuser()}\Documents\entered_date.csv"
-        
-                Xlsx2csv(path,outputencoding='utf-8').convert(csv_path,sheetid=3)
+                entered_date = pd.read_excel(path,sheet_name='GRN (10 so)',usecols=[2])['Entered on Date']
+                rng = pd.to_datetime(entered_date,format='%m/%d/%Y').unique()
         except Exception as e:
+                print(f'Lỗi - {e}' )
+        for i in rng:
+                mask : pd.Series[bool]  = entered_date == entered_date.iloc[0]
+                is_false : bool = mask.all(axis=0)
+                if not is_false:
+                        max : int = mask.idxmax()
+                        min : int = mask.idxmin()
+                        if entered_date[max] > entered_date[min]:
+                                _date : dt.date = entered_date[min]
+                                date_list.append(f'{_date.month}/{_date.day}/{_date.year}')
+                                entered_date = entered_date[entered_date!=_date]
+                        else:
+                                _date : dt.date = entered_date[max]
+                                date_list.append(f'{_date.month}/{_date.day}/{_date.year}')
+                                entered_date = entered_date[entered_date!=_date]
                 
-                print(f'Lỗi không tìm thấy file Documents sau đây sẽ tự tạo - {e}' )
-                os.makedirs(rf"C:\Users\{getpass.getuser()}\Documents",exist_ok=True)
-                Xlsx2csv(path,outputencoding='utf-8').convert(csv_path,sheetid=3)
-                
-        entered_str_date : pd.DataFrame = pd.read_csv(csv_path,usecols=[2],dtype=str)
-        entered_date = pd.to_datetime(entered_str_date.iloc[:,0],format='%m-%d-%y')
-        
-        mask : pd.Series[bool]  = entered_date == entered_date.iloc[0]
-        
-        is_false : bool = mask.all(axis=0)
-        if not is_false:
-                max : int = mask.idxmax()
-                min : int = mask.idxmin()
-                if entered_date[max] > entered_date[min]:
-                        _date : dt.date = entered_date[min]
-                        return f'{_date.month}/{_date.day}/{_date.year}'
-        
-                else:
-                        _date : dt.date = entered_date[max]
-                        return f'{_date.month}/{_date.day}/{_date.year}'
-                
-                
-        else : return None
+                        
+                        
+        return date_list
+
 
 def delete_entered_on_date(path: str,criteria:str)-> None:
-        if not criteria  == None:
+        if len(criteria) > 0:
                 wb = xw.Book(path,update_links=False)
                 sheet = wb.sheets['GRN (10 so)']
-                last_row : int = sheet.range((sheet.cells.last_cell).row,3).end('up').row
-                sheet.api.Range('C1').AutoFilter(Field=3, Criteria1=criteria)
-                try:
-                        visible_row = sheet.api.Range(f'C2:C{last_row}').SpecialCells(12)
-                        visible_row.EntireRow.Delete()
-                        pcn("  ĐÃ XÓA NGÀY CŨ  ")
-                        
+                for c in criteria:        
+                        last_row : int = sheet.range((sheet.cells.last_cell).row,3).end('up').row
+                        sheet.api.Range('C1').AutoFilter(Field=3, Criteria1=c)
+                        try:
+                                visible_row = sheet.api.Range(f'C2:C{last_row}').SpecialCells(12)
+                                visible_row.EntireRow.Delete()
+                                pcn("  ĐÃ XÓA NGÀY CŨ  ")
 
-                except Exception as er:
-                        pcn(' KHÔNG TÌM THẤY NGÀY CŨ ')
+                        except Exception as er:
+                                pcn(' KHÔNG TÌM THẤY NGÀY CŨ ')
                 
-                sheet.api.ShowAllData()
+                        sheet.api.ShowAllData()
         else : pcn(" KHÔNG CÓ NGÀY CŨ ĐỂ XÓA ")
         
 
@@ -150,8 +147,8 @@ def delete_na(path)->None:
         try:        
                 visible_rows = sheet.api.Range(f'Y2:Y{last_row}').SpecialCells(12)
                 if visible_rows.Areas.Count > 0:
-                   for i in visible_rows.Areas:
-                        i.EntireRow.Delete()
+                        for i in visible_rows.Areas:
+                                i.EntireRow.Delete()
                 sheet.api.ShowAllData()
                 pcn(' ĐÃ XÓA #N/A ')
         except Exception :
@@ -168,7 +165,7 @@ def write_user_to_sheet(data: pd.DataFrame , path: str):
                 table = sheet.api.ListObjects('Table3')
                 last_row : int = sheet.range((sheet.cells.last_cell).row,1).end('up').row
                 print_user_table_clean(data)
-                choose_list = save_selected_keyins(data)
+                choose_list = save_selected_keyins(data,yaml_path)
                 if last_row > 4 :
                         sheet.api.Range(f'A{4+1}:A{last_row}').EntireRow.Delete()
                 else : pass

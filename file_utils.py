@@ -13,9 +13,10 @@ def copy_file_from_net(sap_list,path_list) -> list[str]:
     year : dt = current_time.year
     try:
         for sap in sap_list:
-                src : str = rf"D:\AWASE1HCMICAP01\AppsData\GR Ver Report\{short_month} {year}\GR Verification {sap}.xlsx"
+            
+                src : str = rf"\\AWASE1HCMICAP01\AppsData\GR Ver Report\{short_month} {year}\GR Verification {sap}.xlsx"
                 dst : str = rf"C:\Users\{current_user}\Documents\GR Verification {sap}.xlsx"
-                is_exits = os.path.exists(rf"C:\Users\{current_user}\Documents")
+                is_exits = os.path.exists(rf"C:\Users\{current_user}\Documents\Report")
                 if is_exits:
                     shutil.copy(src, dst)
                     path_list.append(dst)

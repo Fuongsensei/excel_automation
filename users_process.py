@@ -17,7 +17,6 @@ from constains import yaml_path
 
 
 
-      
 
 def show_users(callback,title:str)->None:
     with open(yaml_path, 'r', encoding='utf-8') as file:
@@ -42,11 +41,11 @@ def add_user()-> None:
        role = input("Nhập công việc đảm nhận  (VD: Checker, Data entry,Verify): ").strip().upper()
        gender = input("Nhập giới tính (VD: Nam : Male, Nữ : Female): ").strip().upper()
        data = {
-       'NAME': user_name,
        'SAP': user_sap,
+       'NAME': user_name,
+       'GENDER': gender,
        'ROLE': role,
        'SHIFT_WORKING': user_shift,
-       'GENDER': gender,
        'LOCATION': "TBS",
        'ON_OFF': 'On duty',
        'SLOC': None
